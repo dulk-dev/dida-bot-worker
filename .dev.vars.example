@@ -1,0 +1,9 @@
+# Copy to .dev.vars for local `wrangler dev` / `wrangler types`.
+# Never commit real values. Production secrets: `npx wrangler secret put NAME`
+
+CLIENT_ID=your-dida-oauth-client-id
+CLIENT_SECRET=your-dida-oauth-client-secret
+TOKEN_ENCRYPTION_KEY=replace-with-openssl-rand-hex-32
+ADMIN_KEY=replace-with-a-long-random-admin-key
+BOT_WEBHOOK_URL=https://example.invalid/webhook
+BOT_WEBHOOK_SECRET=replace-with-webhook-shared-secret
