@@ -1,0 +1,45 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "dida-bot-merge",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-04",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  // Cron is UTC. Every 3 minutes: window merge + @not + todo claim + optional webhook.
+  // */3 (~480 runs/day) keeps merge-lock put+delete under Free KV write/delete
+  // daily caps (1000 each); */2 (~720) was hitting ~50% mid-day and risked 429.
+  // Cloudflare cron cannot express 2.5 minutes (minimum step is 1 minute; */2.5 is invalid).
+  // This trigger does NOT auto-redeploy. Edit the array to change the schedule;
+  // commenting it out will NOT disable an already-deployed trigger — set
+  // "crons": [] to disable.
+  "triggers": {
+    "crons": ["*/3 * * * *"]
+  },
+  "vars": {
+    // Optional. If empty, OAuth redirect_uri is derived from the incoming request origin.
+    // Set this to the public Worker URL, e.g. "https://dida-bot-merge.<account>.workers.dev"
+    "PUBLIC_BASE_URL": "",
+    "OAUTH_SCOPE": "tasks:read tasks:write",
+    // Days before expires_at to send a token-expiry reminder (Asia/Shanghai calendar day).
+    "TOKEN_EXPIRY_REMIND_DAYS": "14",
+    // How BOT_WEBHOOK_SECRET is sent: "bearer" | "header" | "both"
+    //   bearer → Authorization: Bearer <secret>
+    //   header → X-Webhook-Secret: <secret>
+    //   both   → both headers (default)
+    "BOT_WEBHOOK_AUTH_STYLE": "both"
+  },
+  // Create with:
+  //   npx wrangler kv namespace create TOKEN_KV
+  //   npx wrangler kv namespace create TOKEN_KV --preview
+  // Then replace the placeholder ids below.
+  "kv_namespaces": [
+    {
+      "binding": "TOKEN_KV",
+      "id": "00000000000000000000000000000000",
+      "preview_id": "11111111111111111111111111111111"
+    }
+  ]
+}
